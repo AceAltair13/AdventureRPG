@@ -8,7 +8,7 @@ load_dotenv()
 BOT_VERSION = '0.0.1'
 
 # List of cogs to be loaded
-COG_LIST = ['admin', 'fight']
+COG_LIST = ['admin', 'combat']
 
 # Get the bot token
 BOT_TOKEN = os.getenv('BOT_TOKEN')
