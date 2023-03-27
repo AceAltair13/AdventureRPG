@@ -7,8 +7,8 @@
         "enemies": {
             "normal": [
                 {
-                    "name": "🌲 Ent",
-                    "race": "plant",
+                    "name": "🐗 Wild Boar",
+                    "race": "animal",
                     "stats": {
                         "max_hp": 30,
                         "attack": 2,
@@ -74,7 +74,7 @@
                     "loot_table": []
                 },
                 {
-                    "name": "🌿 Treant",
+                    "name": "🌳 Treant",
                     "race": "plant",
                     "stats": {
                         "max_hp": 250,
@@ -90,7 +90,7 @@
             "boss": [
                 {
                     "name": "🐲 Forest Wyvern",
-                    "race": "mythical creature",
+                    "race": "beast",
                     "stats": {
                         "max_hp": 600,
                         "attack": 30,

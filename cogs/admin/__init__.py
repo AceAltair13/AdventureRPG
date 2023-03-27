@@ -9,8 +9,10 @@ class Admin(commands.Cog):
     def __init__(self, bot: discord.Bot):
         self.bot = bot
 
+    admin = discord.SlashCommandGroup(name='admin', description='Admin exclusive commands')
+
     @commands.is_owner()
-    @discord.slash_command(description='Restarts the bot')
+    @admin.command(description='Restarts the bot')
     async def reload(
         self,
         ctx: discord.ApplicationContext,
@@ -30,6 +32,16 @@ class Admin(commands.Cog):
                     color=discord.Color.red(),
                 )
             )
+
+    @commands.is_owner()
+    @admin.command(description='Shuts down the bot')
+    async def shutdown(self, ctx: discord.ApplicationContext):
+        await ctx.respond(
+            embed=discord.Embed(
+                color=discord.Color.red(), title='Bot is now shutting down. Goodbye 👋'
+            )
+        )
+        await self.bot.close()
 
 
 def setup(bot):
