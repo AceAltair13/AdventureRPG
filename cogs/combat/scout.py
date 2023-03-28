@@ -1,7 +1,7 @@
-from models.character import Player, Enemy, Race, get_random_enemy, EnemyType
-from models.equipment import Armor, ArmorType, Weapon, WeaponType, EquipmentInventory
-from models.view import ProtectedView
-from models.stats import Stats
+from classes.character import Player, Enemy, Race, get_random_enemy, EnemyType
+from classes.equipment import Armor, ArmorType, Weapon, WeaponType, EquipmentInventory
+from classes.view import ProtectedView
+from classes.stats import Stats
 import discord
 import random
 
