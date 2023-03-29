@@ -7,7 +7,7 @@ class ProtectedView(View):
     '''Prevent misauthorized interaction'''
 
     def __init__(self, author: typing.Union[User, Member], *args, **kwargs):
-        super().__init__(timeout=30, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.author = author
 
     async def interaction_check(self, interaction: Interaction) -> bool:
@@ -17,7 +17,3 @@ class ProtectedView(View):
         await interaction.response.send_message(
             'You are not permitted to interact with that.', ephemeral=True
         )
-
-    async def on_timeout(self):
-        self.children.clear()
-        await self.message.edit(embed=Embed(title='You took too long to respond.'), view=self)

@@ -1,5 +1,6 @@
-from .scout import combat_scout, player
+from .scout import combat_scout
 from discord.ext import commands
+from test import player
 import discord
 
 
