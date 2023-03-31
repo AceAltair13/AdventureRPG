@@ -1,6 +1,7 @@
-from classes.character import Player, Enemy
+from classes.character import Player
 from classes.view import ProtectedView
 from .battle import NormalBattle, BattleEmbeds
+from data import get_random_enemy
 import discord
 
 
@@ -70,7 +71,7 @@ class NormalEnemyGameView(ProtectedView):
 
     async def btn_inventory_callback(self, interaction: discord.Interaction):
         self.toggle_inventory()
-        await interaction.response.edit_message(embed=self.embed, view=self)
+        await interaction.response.edit_message(view=self)
 
     async def select_menu_callback(self, interaction: discord.Interaction):
         index = int(self.select_menu.values[0])
@@ -124,8 +125,8 @@ class CombatScoutView(ProtectedView):
         super().__init__(author=author)
         self.author = author
         self.player = player
-        self.enemy = Enemy.get_random_enemy('forest', self.player.level)
-        self.embed = BattleEmbeds.enemy_found_embed(self.enemy)
+        self.enemy = get_random_enemy('forest', self.player.level)
+        self.embed = BattleEmbeds.enemy_found_embed(self.enemy, self.player.energy)
 
     @discord.ui.button(label='Start', style=discord.ButtonStyle.success)
     async def btn_start_fight_callback(
@@ -138,12 +139,17 @@ class CombatScoutView(ProtectedView):
         self.children.clear()
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @discord.ui.button(label='Retry', style=discord.ButtonStyle.blurple)
+    @discord.ui.button(label='Retry [-1⚡]', style=discord.ButtonStyle.blurple)
     async def btn_retry_scout_callback(
-        self, _: discord.ui.Button, interaction: discord.Interaction
+        self, button: discord.ui.Button, interaction: discord.Interaction
     ):
-        self.enemy = Enemy.get_random_enemy('forest', self.player.level)
-        self.embed = BattleEmbeds.enemy_found_embed(self.enemy)
+        self.player.energy -= 1
+        if self.player.energy == 0:
+            button.disabled = True
+            button.label = 'No Energy'
+            button.emoji = '⚠️'
+        self.enemy = get_random_enemy('forest', self.player.level)
+        self.embed = BattleEmbeds.enemy_found_embed(self.enemy, self.player.energy)
         await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='Cancel', style=discord.ButtonStyle.danger)

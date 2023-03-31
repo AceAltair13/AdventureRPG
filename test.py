@@ -7,7 +7,7 @@ from classes.types import ItemType
 
 # Sample player
 player = Player(
-    name='You',
+    name='🧑 You',
     race=RaceType.HUMAN,
     description='',
     stats=Stats(100, 5, 0, 0.0, 1.5, 100),
@@ -24,7 +24,13 @@ player = Player(
             description='[ +10 HP ]',
             item_type=ItemType.CONSUMABLE,
             effects=[('hp', 'add', 10)],
-        )
+        ),
+        Item(
+            name='🧪⚔️ Potion of Strength',
+            description='[ +25% Attack ]',
+            item_type=ItemType.CONSUMABLE,
+            effects=[('attack', 'mul', 1.25)],
+        ),
     ],
     level=1,
 )

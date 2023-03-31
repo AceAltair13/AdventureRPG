@@ -1,4 +1,4 @@
-from discord import User, Member, Interaction, Embed
+from discord import User, Member, Interaction
 from discord.ui import View
 import typing
 

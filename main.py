@@ -21,17 +21,6 @@ class AdventureRPG(discord.Bot):
             super().load_extension(f'cogs.{cog}')
         print(f'{len(cog_list)} cog(s) loaded successfully')
 
-    async def on_application_command_error(
-        self, ctx: discord.ApplicationContext, e: discord.DiscordException
-    ):
-        await ctx.respond(
-            embed=discord.Embed(
-                title="There was an error!",
-                color=discord.Color.red(),
-                description=e,
-            )
-        )
-
 
 # Create custom bot instance
 bot = AdventureRPG()

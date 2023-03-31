@@ -1,6 +1,7 @@
 from .scout import combat_scout
 from discord.ext import commands
 from test import player
+from decorators import player_command
 import discord
 
 
@@ -15,12 +16,14 @@ class Combat(commands.Cog):
 
     # Scout command
     @combat.command(description='Scout for nearby enemies')
+    @player_command
     async def scout(self, ctx: discord.ApplicationContext):
         embed, view = combat_scout(player=player, author=ctx.author)
         await ctx.respond(embed=embed, view=view)
 
     # TODO: Implement duel
     @combat.command(description='Challenge a player in a duel')
+    @player_command
     async def duel(self, ctx: discord.ApplicationContext, opponent: discord.Member):
         await ctx.respond(
             f'You have challenged {opponent.name}! This command is a W.I.P though :)'
@@ -28,11 +31,13 @@ class Combat(commands.Cog):
 
     # TODO: Implement boss
     @combat.command(description='Challenge the boss of your current biome')
+    @player_command
     async def boss(self, ctx: discord.ApplicationContext):
         await ctx.respond('You are not ready for the big fight yet.')
 
     # TODO: Implement training
     @combat.command(description='Undergo some training at the barracks')
+    @player_command
     async def training(self, ctx: discord.ApplicationContext):
         await ctx.respond('This feature is coming soon.')
 

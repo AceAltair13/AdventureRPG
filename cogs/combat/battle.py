@@ -1,5 +1,6 @@
 from classes.character import Character, Player, Enemy, EnemyType
 from classes.item import Item
+from classes.stats import Stats
 import discord
 import random
 
@@ -89,22 +90,22 @@ class BattleEmbeds:
     '''Embed factory for all combat scout related embeds'''
 
     @staticmethod
-    def enemy_found_embed(enemy: Enemy):
+    def enemy_found_embed(enemy: Enemy, energy: int):
         embed = discord.Embed()
+        if energy:
+            embed.set_footer(text=f'Energy Remaining: {energy}⚡')
 
         if enemy:
             embed.color = discord.Color.gold()
             embed.title = enemy.name
-            embed.description = f'Type: `{enemy.race.capitalize()}`'
+            embed.description = (
+                f'Type: `{enemy.race.value.capitalize()}` \n'
+                + f'```❤️{enemy.stats.max_hp} ⚔️{enemy.stats.attack} 🛡️{enemy.stats.defense} \n\n{enemy.description}```'
+            )
 
             # Check if the boss is a mini-boss
             if enemy.enemy_type == EnemyType.MINI_BOSS:
-                embed.set_footer(text='⚠️ Mini-Boss Detected ⚠️')
-
-            # Add stats fields
-            embed.add_field(inline=True, name='Max HP', value=f'💖 `{enemy.stats.max_hp}`')
-            embed.add_field(inline=True, name='Attack', value=f'⚔️ `{enemy.stats.attack}`')
-            embed.add_field(inline=True, name='Defense', value=f'🛡️ `{enemy.stats.defense}`')
+                embed.set_author(name='⚠️ Mini-Boss Detected ⚠️')
         else:
             embed.color = discord.Color.dark_orange()
             embed.title = 'No enemies nearby. Try scouting again.'
@@ -125,67 +126,41 @@ class BattleEmbeds:
         embed = discord.Embed(color=discord.Color.blurple())
 
         # Function to render health
-        def render_hearts(health, max_health):
-            white_squares = round((health / max_health) * 10)
-            black_squares = 10 - white_squares
-            return f'❤️ `{health}` ' + '`' + '⬜' * white_squares + '⬛' * black_squares + '`'
+        def render_stats(stats: Stats):
+            green_squares = round((stats.hp / stats.max_hp) * 10)
+            orange_squares = 10 - green_squares
+            line_1 = f'`❤️ {"🟩" * green_squares}{"🟧" * orange_squares}` `{stats.hp}`'
+            line_2 = f'`⚔️ {stats.attack} 🛡️ {stats.defense}`'
+            return line_1 + ' \n' + line_2
 
-        # Send normal embed
-        embed.title = 'Fight Begins!'
-        embed.add_field(inline=False, name=enemy.name, value=f'Type: `{enemy.race.capitalize()}`')
-        player_message = f'You dealt `{player_damage}` damage to {enemy.name} '
-        enemy_message = f'{enemy.name} strikes back with `{enemy_damage}` damage '
+        def render_actions():
+            # Player action information
+            player_message = f'🔹 You dealt {player_damage} damage to {enemy.name} '
+            if player_did_crit:
+                player_message += ' \n    [ Critical! ]'
 
-        if player_did_crit:
-            player_message += '[CRITICAL!]'
-        if enemy_did_crit:
-            enemy_message += '[CRITICAL!]'
+            # Enemy action information
+            enemy_message = f'🔸 {enemy.name} strikes back with {enemy_damage} damage '
+            if enemy_did_crit:
+                enemy_message += ' \n    [ Critical! ]'
 
-        embed.add_field(
-            inline=False,
-            name=render_hearts(enemy.stats.hp, enemy.stats.max_hp),
-            value='',
-        )
-        stat_max_hp = f'`{enemy.stats.max_hp}`'
-        stat_attack = f'`{enemy.stats.attack}`'
-        stat_defense = f'`{enemy.stats.defense}`'
-        embed.add_field(
-            inline=True,
-            name=f'Max HP : {stat_max_hp}'
-            + '\n'
-            + f'Attack : {stat_attack}'
-            + '\n'
-            + f'Defense : {stat_defense}',
-            value='',
-        )
-        embed.add_field(inline=False, name='═══════════( v/s )═══════════', value='')
-        embed.add_field(inline=False, name=player.name, value=f'Level `{player.level}`')
-        embed.add_field(
-            inline=False,
-            name=render_hearts(player.stats.hp, player.stats.max_hp),
-            value='',
-        )
-        stat_max_hp = f'`{player.stats.max_hp}`'
-        stat_attack = f'`{player.stats.attack}`'
-        stat_defense = f'`{player.stats.defense}`'
-        embed.add_field(
-            inline=True,
-            name=f'Max HP : {stat_max_hp}'
-            + '\n'
-            + f'Attack : {stat_attack}'
-            + '\n'
-            + f'Defense : {stat_defense}',
-            value='',
-        )
-        embed.add_field(inline=False, name='\n', value='')
+            if item_used is not None:
+                action_message = f'🔹 You used a {item_used.name} {item_used.description}'
+            elif not (player_damage == enemy_damage == 0):
+                action_message = player_message + '\n' + enemy_message
+            else:
+                action_message = f'🔹 You have started a fight with {enemy.name}'
 
-        if item_used is not None:
-            embed.add_field(
-                inline=False, name=f'You used a {item_used.name} {item_used.description}', value=''
-            )
-        elif not (player_damage == enemy_damage == 0):
-            embed.add_field(inline=False, name=player_message + '\n' + enemy_message, value='')
+            return '```' + action_message + '```'
 
+        # Render enemy and player
+        embed.add_field(name=enemy.name, value=render_stats(enemy.stats), inline=False)
+        embed.add_field(name=player.name, value=render_stats(player.stats), inline=False)
+
+        # Render actions
+        embed.add_field(name='Actions', value=render_actions(), inline=False)
+
+        # Return the embed
         return embed
 
     @staticmethod

@@ -1,5 +1,6 @@
 from discord.ext import commands
 from config import COG_LIST
+from db import delete_player, player_exists
 import discord
 
 
@@ -42,6 +43,30 @@ class Admin(commands.Cog):
             )
         )
         await self.bot.close()
+
+    @commands.is_owner()
+    @admin.command(description='Delete a player from the database')
+    async def delete_player(self, ctx: discord.ApplicationContext, player: discord.Member):
+        embed = discord.Embed()
+        if delete_player(player.id):
+            embed.color = discord.Color.green()
+            embed.title = 'Player Deleted!'
+            embed.description = (
+                f'You have successfully deleted the data of `{player.name}` from the database.'
+            )
+        else:
+            embed.color = discord.Color.red()
+            embed.title = 'Could not find the player in the database'
+        await ctx.respond(embed=embed)
+
+    async def cog_command_error(self, ctx: discord.ApplicationContext, error):
+        if isinstance(error, commands.NotOwner):
+            embed = discord.Embed(
+                title='You are not allowed to use that command', color=discord.Color.red()
+            )
+            await ctx.respond(embed=embed)
+        else:
+            raise error
 
 
 def setup(bot):
