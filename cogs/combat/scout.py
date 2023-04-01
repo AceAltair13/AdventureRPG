@@ -2,7 +2,7 @@ from classes.character import Player
 from classes.view import ProtectedView
 from .battle import NormalBattle, BattleEmbeds
 from data import get_random_enemy
-from db import consume_player_energy
+from db import consume_player_energy, update_player
 import discord
 
 
@@ -13,6 +13,7 @@ class NormalEnemyGameView(ProtectedView):
     def __init__(self, game: NormalBattle, author):
         super().__init__(author=author)
         self.game = game
+        self.author = author
 
         # Attack button
         self.btn_attack = discord.ui.Button(
@@ -63,11 +64,13 @@ class NormalEnemyGameView(ProtectedView):
     async def btn_attack_callback(self, interaction: discord.Interaction):
         self.embed, game_over = self.game.attack()
         if game_over:
+            update_player(self.author.id, self.game.player)
             self.children.clear()
         await interaction.response.edit_message(embed=self.embed, view=self)
 
     async def btn_escape_callback(self, interaction: discord.Interaction):
         self.embed = discord.Embed(title='You escaped!')
+        update_player(self.author.id, self.game.player)
         self.children.clear()
         await interaction.response.edit_message(embed=self.embed, view=self)
 

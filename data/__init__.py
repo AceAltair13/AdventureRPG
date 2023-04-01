@@ -1,4 +1,5 @@
 from .regions import forest, desert
+from .equipment import boots, leggings, chestplates, helmets, weapons
 from classes.character import Enemy
 from classes.stats import Stats
 from classes.types import RaceType, EnemyType
@@ -11,10 +12,18 @@ game_data = {
     'regions': {
         'forest': forest.forest_region,
         'desert': desert.desert_region,
-    }
+    },
+    'equipment': {
+        'boots': boots.boots,
+        'leggings': leggings.leggings,
+        'chestplates': chestplates.chestplates,
+        'helmets': helmets.helmets,
+        'weapons': weapons.weapons,
+    },
 }
 
 
+# Helper functions
 def get_random_enemy(region: str, player_level: int):
     '''Gets a random enemy from a specified region'''
 

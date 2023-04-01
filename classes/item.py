@@ -20,6 +20,7 @@ class Item(Entity):
 
     def __init__(
         self,
+        item_id: str,
         name: str,
         description: str,
         item_type: ItemType,
@@ -31,6 +32,7 @@ class Item(Entity):
         selling_price: int = 0,
     ) -> None:
         super().__init__(name=name, description=description)
+        self.item_id = item_id
         self.effects = effects
         self.duration = duration
         self.type = item_type

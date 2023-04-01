@@ -13,11 +13,9 @@ class Character(Entity):
         self,
         name: str,
         description: str,
-        race: RaceType,
         stats: Stats,
     ):
         super().__init__(name=name, description=description)
-        self.race = race
         self.stats = stats
 
     def take_damage(self, damage: int):
@@ -45,14 +43,13 @@ class Player(Character):
         self,
         name: str,
         description: str,
-        race: RaceType,
         stats: Stats,
         equipment: EquipmentInventory = {},
         energy: int = 10,
         level: int = 1,
         inventory: list[Item] = [],
     ):
-        super().__init__(name, description, race, stats)
+        super().__init__(name, description, stats)
         self.actual_stats = stats
         self.inventory = inventory
         self.equipment = equipment
@@ -86,17 +83,47 @@ class Player(Character):
     def reset_effects(self):
         self.stats = self.actual_stats
 
-    def get_player_dict_for_update(self):
+    def document(self):
+        stats = {
+            'hp': self.stats.hp,
+            'max_hp': self.stats.max_hp,
+            'cc': self.stats.cc,
+            'cd': self.stats.cd,
+            'attack': self.stats.attack,
+            'defense': self.stats.defense,
+        }
+        inventory = [{'item_id': item.item_id, 'count': item.count} for item in self.inventory]
+        equipment = {
+            'helmet': {
+                'item_id': self.equipment.helmet.item_id,
+                'level': self.equipment.helmet.current_level,
+            },
+            'chestplate': {
+                'item_id': self.equipment.chestplate.item_id,
+                'level': self.equipment.chestplate.current_level,
+            },
+            'leggings': {
+                'item_id': self.equipment.leggings.item_id,
+                'level': self.equipment.leggings.current_level,
+            },
+            'boots': {
+                'item_id': self.equipment.boots.item_id,
+                'level': self.equipment.boots.current_level,
+            },
+            'weapon': {
+                'item_id': self.equipment.weapon.item_id,
+                'level': self.equipment.weapon.current_level,
+            },
+        }
+
         return {
             'name': self.name,
             'description': self.description,
-            'race': self.race,
-            'stats': self.stats,
-            'inventory': self.inventory,
-            'equipment': self.equipment,
+            'stats': stats,
+            'inventory': inventory,
+            'equipment': equipment,
             'level': self.level,
             'energy': self.energy,
-            'effect_duration_remaining': self.effect_duration_remaining,
         }
 
 
@@ -112,6 +139,7 @@ class Enemy(Character):
         enemy_type: EnemyType,
         loot_table: list = [],
     ):
-        super().__init__(name, description, race, stats)
+        super().__init__(name, description, stats)
+        self.race = race
         self.enemy_type = enemy_type
         self.loot_table = loot_table

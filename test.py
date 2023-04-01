@@ -8,7 +8,6 @@ from classes.types import ItemType
 # Sample player
 player = Player(
     name='🧑 You',
-    race=RaceType.HUMAN,
     description='',
     stats=Stats(100, 5, 0, 0.0, 1.5, 100),
     equipment=EquipmentInventory(

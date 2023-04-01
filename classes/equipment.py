@@ -7,13 +7,14 @@ class Equipment(Item):
 
     def __init__(
         self,
+        item_id: str,
         name: str,
         description: str,
         item_type: ItemType,
         required_level: int,
-        current_level: int = 1,
+        current_level: int,
     ):
-        super().__init__(name=name, description=description, item_type=item_type)
+        super().__init__(item_id=item_id, name=name, description=description, item_type=item_type)
         self.required_level = required_level
         self.current_level = current_level
 
@@ -23,20 +24,26 @@ class Armor(Equipment):
 
     def __init__(
         self,
+        item_id: str,
         name: str,
         description: str,
         required_level: int,
         armor_type: ArmorType,
         defense: int,
+        set_bonus_id: str,
+        current_level: int = 1,
     ):
         super().__init__(
+            item_id=item_id,
             name=name,
             description=description,
             item_type=ItemType.ARMOR,
             required_level=required_level,
+            current_level=current_level,
         )
         self.armor_type = armor_type
         self.defense = defense
+        self.set_bonus_id = set_bonus_id
 
 
 class Weapon(Equipment):
@@ -44,17 +51,21 @@ class Weapon(Equipment):
 
     def __init__(
         self,
+        item_id: str,
         name: str,
         description: str,
         required_level: int,
         weapon_type: WeaponType,
         attack: int,
+        current_level: int = 1,
     ):
         super().__init__(
+            item_id=item_id,
             name=name,
             description=description,
             item_type=ItemType.WEAPON,
             required_level=required_level,
+            current_level=current_level,
         )
         self.weapon_type = weapon_type
         self.attack = attack
