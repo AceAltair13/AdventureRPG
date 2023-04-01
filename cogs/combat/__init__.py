@@ -1,7 +1,7 @@
 from .scout import combat_scout
 from discord.ext import commands
-from test import player
 from decorators import player_command
+from bot import PlayerApplicationContext
 import discord
 
 
@@ -15,30 +15,30 @@ class Combat(commands.Cog):
     combat = discord.SlashCommandGroup(name='combat', description='Commands related to combat')
 
     # Scout command
-    @combat.command(description='Scout for nearby enemies')
-    @player_command
-    async def scout(self, ctx: discord.ApplicationContext):
-        embed, view = combat_scout(player=player, author=ctx.author)
+    @combat.command(name='scout', description='Scout for nearby enemies')
+    @player_command(energy_consumed=1)
+    async def _scout(self, ctx: PlayerApplicationContext):
+        embed, view = combat_scout(player=ctx.player, author=ctx.author)
         await ctx.respond(embed=embed, view=view)
 
     # TODO: Implement duel
-    @combat.command(description='Challenge a player in a duel')
-    @player_command
-    async def duel(self, ctx: discord.ApplicationContext, opponent: discord.Member):
+    @combat.command(name='challenge', description='Challenge a player in a duel')
+    @player_command()
+    async def _challenge(self, ctx: PlayerApplicationContext, opponent: discord.Member):
         await ctx.respond(
             f'You have challenged {opponent.name}! This command is a W.I.P though :)'
         )
 
     # TODO: Implement boss
-    @combat.command(description='Challenge the boss of your current biome')
-    @player_command
-    async def boss(self, ctx: discord.ApplicationContext):
+    @combat.command(name='boss', description='Challenge the boss of your current biome')
+    @player_command()
+    async def _boss(self, ctx: PlayerApplicationContext):
         await ctx.respond('You are not ready for the big fight yet.')
 
     # TODO: Implement training
-    @combat.command(description='Undergo some training at the barracks')
-    @player_command
-    async def training(self, ctx: discord.ApplicationContext):
+    @combat.command(name='training', description='Undergo some training at the barracks')
+    @player_command()
+    async def _training(self, ctx: PlayerApplicationContext):
         await ctx.respond('This feature is coming soon.')
 
 

@@ -155,7 +155,7 @@ class BattleEmbeds:
 
         # Render enemy and player
         embed.add_field(name=enemy.name, value=render_stats(enemy.stats), inline=False)
-        embed.add_field(name=player.name, value=render_stats(player.stats), inline=False)
+        embed.add_field(name=f'🧑 {player.name}', value=render_stats(player.stats), inline=False)
 
         # Render actions
         embed.add_field(name='Actions', value=render_actions(), inline=False)

@@ -46,3 +46,9 @@ class WeaponType(Enum):
     ELECTRIC = 5
     POISON = 6
     RADIANT = 7
+
+
+# Decorator exceptions
+class DecoratorErrors(Enum):
+    PLAYER_NOT_FOUND = 0
+    PLAYER_HAS_NO_ENERGY = 1

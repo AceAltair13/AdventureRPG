@@ -1,8 +1,10 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, ReturnDocument
 from config import MONGODB_URI
 from classes.character import Player
-from classes.types import ArmorType, WeaponType
-import bson
+from classes.types import RaceType
+from classes.stats import Stats
+import errors
+
 
 # Get the client
 client = MongoClient(MONGODB_URI)
@@ -14,90 +16,83 @@ db = client.adventureRPG
 players = db.players
 
 
-# Check if the player exists in the db
 def player_exists(id: int):
-    id = str(id)
-    return players.count_documents({'_id': id}) != 0
+    '''Check if the player exists in the db'''
+    return players.count_documents({'_id': str(id)}) != 0
 
 
-# Create a new player in the players collection
 def create_player(id: int, name: str, description: str):
-    # equipment = {
-    #     'helmet': {
-    #         'name': 'No Helmet',
-    #         'description': '',
-    #         'required_level': 1,
-    #         'armor_type': ArmorType.HELMET.value,
-    #         'defense': 0,
-    #     },
-    #     'chestplate': {
-    #         'name': 'No Chestplate',
-    #         'description': '',
-    #         'required_level': 1,
-    #         'armor_type': ArmorType.CHESTPLATE.value,
-    #         'defense': 0,
-    #     },
-    #     'leggings': {
-    #         'name': 'No Leggings',
-    #         'description': '',
-    #         'required_level': 1,
-    #         'armor_type': ArmorType.LEGGINGS.value,
-    #         'defense': 0,
-    #     },
-    #     'boots': {
-    #         'name': 'No Boots',
-    #         'description': '',
-    #         'required_level': 1,
-    #         'armor_type': ArmorType.BOOTS.value,
-    #         'defense': 0,
-    #     },
-    #     'weapon': {
-    #         'name': 'Fist',
-    #         'description': '',
-    #         'required_level': 1,
-    #         'weapon_type': WeaponType.BLUDGEONING.value,
-    #         'attack': 5,
-    #     },
-    # }
-
-    # defense = (
-    #     equipment['helmet']['defense']
-    #     + equipment['chestplate']['defense']
-    #     + equipment['leggings']['defense']
-    #     + equipment['boots']['defense']
-    # )
-
-    # stats = {
-    #     'hp': 100,
-    #     'attack': equipment['weapon']['attack'],
-    #     'defense': defense,
-    #     'cc': 0.0,
-    #     'cd': 1.5,
-    #     'max_hp': 100,
-    # }
-    id = str(id)
+    '''Create a new player in the players collection'''
     player = {
-        '_id': id,
+        '_id': str(id),
         'name': name,
         'description': description,
         'race': 'human',
         'level': 1,
         'inventory': [],
-        'equipment': {'Helmet': 'no_helmet'},
+        'stats': {'hp': 100, 'attack': 5, 'defense': 0, 'cc': 0.0, 'cd': 1.5, 'max_hp': 100},
+        'equipment': {},
+        'energy': 10,
     }
+    id = players.insert_one(player).inserted_id
+    if id is None:
+        raise errors.DatabaseSaveError
 
-    return players.insert_one(player).acknowledged
+
+def get_player(id: int, energy_consumed: int = 0) -> Player:
+    '''Get the player from the players collection'''
+
+    # Check if player doesn't exist
+    if not player_exists(str(id)):
+        raise errors.PlayerNotCreated
+
+    # Check if the command consumes energy
+    if energy_consumed > 0:
+        _player = players.find_one_and_update(
+            filter={'_id': str(id), 'energy': {'$gt': 0}},
+            projection={'_id': 0},
+            update={'$inc': {'energy': -energy_consumed}},
+            return_document=ReturnDocument.AFTER,
+        )
+        # Check if player had no energy
+        if _player is None:
+            raise errors.PlayerHasNoEnergy
+    else:
+        _player = players.find_one({'_id': str(id)}, {'_id': 0})
+
+    # Change race to Enum
+    race = _player['race']
+    _player['race'] = RaceType(race)
+
+    # Change stats from dict to object
+    stats = _player['stats']
+    _player['stats'] = Stats(**stats)
+
+    return Player(**_player)
 
 
-# Get a player from the players collection
-def get_player(id: int) -> Player:
-    id = str(id)
-    player = players.find_one({'_id': id})
+def update_player_field(id: int, field: str, value):
+    '''Update a player field in the players collection'''
+    count = players.update_one({'_id': str(id)}, {'$set': {field: value}}).modified_count
+    if count == 0:
+        raise errors.DatabaseSaveError
+
+
+def consume_player_energy(id: int, amount: int = 1) -> int:
+    '''Consume player energy and return the modified energy'''
+    _player = players.find_one_and_update(
+        filter={'_id': str(id)},
+        projection={'energy': 1},
+        update={'$inc': {'energy': -amount}},
+        return_document=ReturnDocument.AFTER,
+    )
+    if _player is None:
+        raise errors.PlayerNotFound
+    return _player['energy']
 
 
 def delete_player(id: int):
-    id = str(id)
-    return players.delete_one({'_id': id}).deleted_count > 0
-
-
-# print(players.find_one({'_id': '345246015882002433'}))
+    '''Delete a player from the database'''
+    count = players.delete_one({'_id': str(id)}).deleted_count
+    if count == 0:
+        raise errors.PlayerNotFound

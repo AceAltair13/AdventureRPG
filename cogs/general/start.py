@@ -15,18 +15,12 @@ class PlayerCreateModal(discord.ui.Modal):
         self.add_item(self.character_description)
 
     async def callback(self, interaction: discord.Interaction):
-        embed = discord.Embed()
         name = self.character_name.value
         description = self.character_description.value
-        result = create_player(interaction.user.id, name, description)
-        if result:
-            embed.color = discord.Color.green()
-            embed.title = '🔱 Welcome to AdventureRPG 🔱'
-            embed.description = (
-                f'Your character `{name}` is now ready to embark on an epic adventure!'
-            )
-        else:
-            embed.color = discord.Color.red()
-            embed.title = 'There was an error creating your profile!'
-            embed.description = 'Please try again.'
+        create_player(interaction.user.id, name, description)
+        embed = discord.Embed(
+            color=discord.Color.green(),
+            title='🔱 Welcome to AdventureRPG 🔱',
+            description=f'Your character `{name}` is now ready to embark on an epic adventure!',
+        )
         await interaction.response.send_message(embed=embed)

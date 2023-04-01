@@ -14,7 +14,7 @@ COG_LIST = ['admin', 'general', 'combat']
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 # Get the super admin ID list
-SUPER_ADMIN_ID_LIST = list(map(int, os.getenv("SUPER_ADMIN_ID_LIST").split(",")))
+ADMIN_LIST = list(map(int, os.getenv("ADMIN_LIST").split(",")))
 
 # MongoDB Credentials
 MONGODB_URI = os.getenv('MONGODB_URI')

@@ -2,6 +2,7 @@ from classes.character import Player
 from classes.view import ProtectedView
 from .battle import NormalBattle, BattleEmbeds
 from data import get_random_enemy
+from db import consume_player_energy
 import discord
 
 
@@ -33,9 +34,10 @@ class NormalEnemyGameView(ProtectedView):
 
         # Inventory button
         self.btn_inventory = discord.ui.Button(
-            label='Open Inventory',
+            label='Open Inventory' if self.game.player.inventory else 'Inventory Empty',
             style=discord.ButtonStyle.primary,
             row=1,
+            disabled=self.game.player.inventory == [],
         )
         self.btn_inventory.callback = self.btn_inventory_callback
 
@@ -139,11 +141,11 @@ class CombatScoutView(ProtectedView):
         self.children.clear()
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @discord.ui.button(label='Retry [-1⚡]', style=discord.ButtonStyle.blurple)
+    @discord.ui.button(label='Retry [ -1⚡]', style=discord.ButtonStyle.blurple)
     async def btn_retry_scout_callback(
         self, button: discord.ui.Button, interaction: discord.Interaction
     ):
-        self.player.energy -= 1
+        self.player.energy = consume_player_energy(self.author.id)
         if self.player.energy == 0:
             button.disabled = True
             button.label = 'No Energy'

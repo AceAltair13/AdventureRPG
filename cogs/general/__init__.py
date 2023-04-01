@@ -1,6 +1,7 @@
 from discord.ext import commands
 from .start import PlayerCreateModal
-from db import player_exists
+from decorators import player_command
+from bot import PlayerApplicationContext
 import discord
 
 
@@ -10,17 +11,10 @@ class General(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.slash_command(description='Starts a new game')
-    async def start(self, ctx: discord.ApplicationContext):
-        if player_exists(ctx.author.id):
-            embed = discord.Embed(
-                color=discord.Color.red(),
-                title='Player Exists',
-                description=f'Hey, {ctx.author.name}! It looks like you have already created a character before. This command is only for new players 😀',
-            )
-            await ctx.respond(embed=embed)
-        else:
-            await ctx.send_modal(PlayerCreateModal(title='AdventureRPG'))
+    @discord.slash_command(name='start', description='Starts a new game')
+    @player_command(player_should_exist=False)
+    async def _start(self, ctx: PlayerApplicationContext):
+        await ctx.send_modal(PlayerCreateModal(title='AdventureRPG'))
 
 
 def setup(bot):

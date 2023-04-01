@@ -47,7 +47,7 @@ class Player(Character):
         description: str,
         race: RaceType,
         stats: Stats,
-        equipment: EquipmentInventory,
+        equipment: EquipmentInventory = {},
         energy: int = 10,
         level: int = 1,
         inventory: list[Item] = [],
@@ -85,6 +85,19 @@ class Player(Character):
 
     def reset_effects(self):
         self.stats = self.actual_stats
+
+    def get_player_dict_for_update(self):
+        return {
+            'name': self.name,
+            'description': self.description,
+            'race': self.race,
+            'stats': self.stats,
+            'inventory': self.inventory,
+            'equipment': self.equipment,
+            'level': self.level,
+            'energy': self.energy,
+            'effect_duration_remaining': self.effect_duration_remaining,
+        }
 
 
 class Enemy(Character):

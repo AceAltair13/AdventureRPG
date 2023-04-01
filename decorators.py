@@ -1,21 +1,59 @@
+from bot import PlayerApplicationContext
 from functools import wraps
-from db import player_exists
-import discord
+from db import get_player, player_exists
+from errors import AdventureRPGException, NotAnAdmin, PlayerAlreadyExists
+from config import ADMIN_LIST
+from discord import Embed, Color
 
 
-# Custom decorator to allow only players to use command
-def player_command(func):
+def player_command(energy_consumed: int = 0, player_should_exist: bool = True):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(self, ctx: PlayerApplicationContext, *args, **kwargs):
+            author = ctx.author
+
+            # Get the player and pass it into the PlayerApplicationContext
+            try:
+                if player_should_exist:
+                    player = get_player(author.id, energy_consumed)
+                    ctx.set_player(player)
+                else:
+                    if player_exists(author.id):
+                        raise PlayerAlreadyExists
+                await func(self, ctx, *args, **kwargs)
+            except AdventureRPGException as e:
+                await ctx.respond(embed=e.get_embed())
+            except:
+                await ctx.respond(
+                    embed=Embed(
+                        color=Color.red(),
+                        title='Error',
+                        description='Looks like something went wrong. Please try again.',
+                    )
+                )
+
+        return wrapper
+
+    return decorator
+
+
+# Allow only admins to use the command
+def admin_only(func):
     @wraps(func)
-    async def wrapper(*args, **kwargs):
-        author = args[1].author
-        if not player_exists(author.id):
-            embed = discord.Embed(
-                color=discord.Color.green(),
-                title=f'Welcome, {author.name}',
-                description="It looks like you haven't started playing yet. Use the `/start` command to start playing AdventureRPG now!",
+    async def wrapper(self, ctx, *args, **kwargs):
+        try:
+            if ctx.author.id not in ADMIN_LIST:
+                raise NotAnAdmin
+            await func(self, ctx, *args, **kwargs)
+        except AdventureRPGException as e:
+            await ctx.respond(embed=e.get_embed())
+        except:
+            await ctx.respond(
+                embed=Embed(
+                    color=Color.red(),
+                    title='Error',
+                    description='Looks like something went wrong. Please try again.',
+                )
             )
-            await args[1].respond(embed=embed)
-        else:
-            await func(*args, **kwargs)
 
     return wrapper
