@@ -1,4 +1,4 @@
-from classes.types import WeaponType
+from data.types import WeaponType
 
 weapons = {
     'no_weapon': {

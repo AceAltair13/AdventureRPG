@@ -1,7 +1,6 @@
-from classes.character import Player
-from classes.view import ProtectedView
+from classes.character import Player, Enemy
+from bot import ProtectedView
 from .battle import NormalBattle, BattleEmbeds
-from data import get_random_enemy
 from db import consume_player_energy, update_player
 import discord
 
@@ -130,7 +129,7 @@ class CombatScoutView(ProtectedView):
         super().__init__(author=author)
         self.author = author
         self.player = player
-        self.enemy = get_random_enemy('forest', self.player.level)
+        self.enemy = Enemy.get_random_enemy('forest', self.player.level)
         self.embed = BattleEmbeds.enemy_found_embed(self.enemy, self.player.energy)
 
     @discord.ui.button(label='Start', style=discord.ButtonStyle.success)
@@ -153,7 +152,7 @@ class CombatScoutView(ProtectedView):
             button.disabled = True
             button.label = 'No Energy'
             button.emoji = '⚠️'
-        self.enemy = get_random_enemy('forest', self.player.level)
+        self.enemy = Enemy.get_random_enemy('forest', self.player.level)
         self.embed = BattleEmbeds.enemy_found_embed(self.enemy, self.player.energy)
         await interaction.response.edit_message(embed=self.embed, view=self)
 

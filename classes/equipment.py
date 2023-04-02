@@ -1,5 +1,5 @@
 from .item import Item
-from .types import ArmorType, WeaponType, ItemType
+from data.types import ArmorType, WeaponType, ItemType
 
 
 class Equipment(Item):
@@ -7,14 +7,14 @@ class Equipment(Item):
 
     def __init__(
         self,
-        item_id: str,
+        id: str,
         name: str,
         description: str,
         item_type: ItemType,
         required_level: int,
-        current_level: int,
+        current_level: int = 1,
     ):
-        super().__init__(item_id=item_id, name=name, description=description, item_type=item_type)
+        super().__init__(id, name, description, item_type)
         self.required_level = required_level
         self.current_level = current_level
 
@@ -24,7 +24,7 @@ class Armor(Equipment):
 
     def __init__(
         self,
-        item_id: str,
+        id: str,
         name: str,
         description: str,
         required_level: int,
@@ -34,7 +34,7 @@ class Armor(Equipment):
         current_level: int = 1,
     ):
         super().__init__(
-            item_id=item_id,
+            id=id,
             name=name,
             description=description,
             item_type=ItemType.ARMOR,
@@ -51,7 +51,7 @@ class Weapon(Equipment):
 
     def __init__(
         self,
-        item_id: str,
+        id: str,
         name: str,
         description: str,
         required_level: int,
@@ -60,7 +60,7 @@ class Weapon(Equipment):
         current_level: int = 1,
     ):
         super().__init__(
-            item_id=item_id,
+            id=id,
             name=name,
             description=description,
             item_type=ItemType.WEAPON,

@@ -1,8 +1,8 @@
-from classes.character import Player, RaceType
+from classes.character import Player
 from classes.equipment import Armor, ArmorType, Weapon, WeaponType, EquipmentInventory
 from classes.item import Item
 from classes.stats import Stats
-from classes.types import ItemType
+from data.types import ItemType
 
 
 # Sample player

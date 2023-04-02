@@ -38,12 +38,14 @@ class NormalBattle:
     ):
         # Check for game over condition
         if not self.player.is_alive() or not self.enemy.is_alive():
+            player_alive = self.player.is_alive()
             return (
                 BattleEmbeds.post_fight_embed(
-                    True,
+                    player_alive,
                     self.player_total_damage,
                     self.enemy_total_damage,
                     100,
+                    self.enemy.generate_loot(self.player.stats.luck) if player_alive else None,
                 ),
                 True,
             )
@@ -164,15 +166,8 @@ class BattleEmbeds:
         return embed
 
     @staticmethod
-    def post_fight_embed(win, player_total_damage, enemy_total_damage, xp_received):
+    def post_fight_embed(win, player_total_damage, enemy_total_damage, xp_received, loot: None):
         embed = discord.Embed()
-
-        if win:
-            embed.color = discord.Color.green()
-            embed.title = '🏆 Victory'
-        else:
-            embed.color = discord.Color.red()
-            embed.title = '☠️ Defeat'
 
         embed.add_field(
             inline=False,
@@ -189,4 +184,14 @@ class BattleEmbeds:
             name='XP Earned',
             value=f'🔅 `{xp_received}`',
         )
+
+        if win:
+            embed.color = discord.Color.green()
+            embed.title = '🏆 Victory'
+            if loot:
+                list_loot = '\n'.join(f'{item[0]}x {item[1].name}' for item in loot)
+                embed.add_field(name='🎉 Loot', value=list_loot, inline=False)
+        else:
+            embed.color = discord.Color.red()
+            embed.title = '☠️ Defeat'
         return embed

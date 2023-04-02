@@ -1,9 +1,28 @@
 from classes.character import Player
-import discord
+from discord.ui import View
+from discord import User, Member, Interaction, Bot, ApplicationContext
+import typing
+
+
+# Custom View to prevent non-authors to grief
+class ProtectedView(View):
+    '''Prevent misauthorized interaction'''
+
+    def __init__(self, author: typing.Union[User, Member], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.author = author
+
+    async def interaction_check(self, interaction: Interaction) -> bool:
+        return interaction.user.id == self.author.id
+
+    async def on_check_failure(self, interaction: Interaction) -> None:
+        await interaction.response.send_message(
+            'You are not permitted to interact with that.', ephemeral=True
+        )
 
 
 # Custom ApplicationContext to store player data
-class PlayerApplicationContext(discord.ApplicationContext):
+class PlayerApplicationContext(ApplicationContext):
     def __init__(self, bot, interaction):
         super().__init__(bot, interaction)
         self.player = None
@@ -12,7 +31,7 @@ class PlayerApplicationContext(discord.ApplicationContext):
         self.player = player
 
 
-class AdventureRPG(discord.Bot):
+class AdventureRPG(Bot):
     '''Custom subclass of discord.Bot for AdventureRPG'''
 
     def __init__(self, version: str):
@@ -26,7 +45,7 @@ class AdventureRPG(discord.Bot):
         print('---=---=---=---=---=---=---=---')
 
     async def get_application_context(
-        self, interaction: discord.Interaction, cls=PlayerApplicationContext
+        self, interaction: Interaction, cls=PlayerApplicationContext
     ):
         return await super().get_application_context(interaction, cls=cls)
 

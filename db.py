@@ -1,10 +1,6 @@
 from pymongo import MongoClient, ReturnDocument
 from config import MONGODB_URI
-from classes.types import ArmorType, WeaponType
 from classes.character import Player
-from classes.stats import Stats
-from classes.equipment import EquipmentInventory, Armor, Weapon
-from data import game_data
 import errors
 
 
@@ -34,23 +30,23 @@ def create_player(id: int, name: str, description: str):
         'stats': {'hp': 100, 'attack': 5, 'defense': 0, 'cc': 0.0, 'cd': 1.5, 'max_hp': 100},
         'equipment': {
             'weapon': {
-                'item_id': 'no_weapon',
+                'id': 'no_weapon',
                 'level': 1,
             },
             'helmet': {
-                'item_id': 'no_helmet',
+                'id': 'no_helmet',
                 'level': 1,
             },
             'chestplate': {
-                'item_id': 'no_chestplate',
+                'id': 'no_chestplate',
                 'level': 1,
             },
             'leggings': {
-                'item_id': 'no_leggings',
+                'id': 'no_leggings',
                 'level': 1,
             },
             'boots': {
-                'item_id': 'no_boots',
+                'id': 'no_boots',
                 'level': 1,
             },
         },
@@ -80,50 +76,12 @@ def get_player(id: int, energy_consumed: int = 0) -> Player:
     if energy_consumed and _player is None:
         raise errors.PlayerHasNoEnergy
 
-    stats = _player['stats']
-    equipment = _player['equipment']
-
-    equipment_inventory = EquipmentInventory(
-        helmet=Armor(
-            item_id=equipment['helmet']['item_id'],
-            armor_type=ArmorType.HELMET,
-            current_level=equipment['helmet']['level'],
-            **game_data['equipment']['helmets'][equipment['helmet']['item_id']]
-        ),
-        chestplate=Armor(
-            item_id=equipment['chestplate']['item_id'],
-            armor_type=ArmorType.CHESTPLATE,
-            current_level=equipment['chestplate']['level'],
-            **game_data['equipment']['chestplates'][equipment['chestplate']['item_id']]
-        ),
-        leggings=Armor(
-            item_id=equipment['leggings']['item_id'],
-            armor_type=ArmorType.LEGGINGS,
-            current_level=equipment['leggings']['level'],
-            **game_data['equipment']['leggings'][equipment['leggings']['item_id']]
-        ),
-        boots=Armor(
-            item_id=equipment['boots']['item_id'],
-            armor_type=ArmorType.BOOTS,
-            current_level=equipment['boots']['level'],
-            **game_data['equipment']['boots'][equipment['boots']['item_id']]
-        ),
-        weapon=Weapon(
-            item_id=equipment['weapon']['item_id'],
-            current_level=equipment['weapon']['level'],
-            **game_data['equipment']['weapons'][equipment['weapon']['item_id']]
-        ),
-    )
-
-    _player['stats'] = Stats(**stats)
-    _player['equipment'] = equipment_inventory
-
-    return Player(**_player)
+    return Player.from_document(_player)
 
 
 def update_player(id: int, player: Player):
     '''Update a player in the players collection'''
-    count = players.update_one({'_id': str(id)}, {'$set': player.document()}).modified_count
+    count = players.update_one({'_id': str(id)}, {'$set': player.to_document()}).modified_count
     if count == 0:
         raise errors.DatabaseSaveError
 
