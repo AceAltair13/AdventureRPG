@@ -76,13 +76,3 @@ class PlayerAlreadyExists(AdventureRPGException):
             title='Player Already Exists',
             message='This command is only available for players who haven\'t started playing yet.',
         )
-
-
-class PlayerHasNoEnergy(AdventureRPGException):
-    '''If the player has no energy'''
-
-    def __init__(self):
-        super().__init__(
-            title='Out Of Energy',
-            message='Sorry, you don\'t have enough energy to use this command. Please use `/rest` to start gaining energy.',
-        )

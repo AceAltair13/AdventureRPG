@@ -1,7 +1,7 @@
 from classes.character import Player, Enemy
 from bot import ProtectedView
 from .battle import NormalBattle, BattleEmbeds
-from utils.db import consume_player_energy, update_player
+from utils.db import update_player
 import discord
 
 
@@ -131,7 +131,7 @@ class CombatScoutView(ProtectedView):
         self.player = player
         self.game_data = game_data
         self.enemy = Enemy.get_random_enemy(self.game_data, 'forest', self.player.level)
-        self.embed = BattleEmbeds.enemy_found_embed(self.enemy, self.player.energy)
+        self.embed = BattleEmbeds.enemy_found_embed(self.enemy)
 
     @discord.ui.button(label='Start', style=discord.ButtonStyle.success)
     async def btn_start_fight_callback(
@@ -144,17 +144,12 @@ class CombatScoutView(ProtectedView):
         self.children.clear()
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @discord.ui.button(label='Retry [ -1⚡]', style=discord.ButtonStyle.blurple)
+    @discord.ui.button(label='Retry', style=discord.ButtonStyle.blurple)
     async def btn_retry_scout_callback(
         self, button: discord.ui.Button, interaction: discord.Interaction
     ):
-        self.player.energy = consume_player_energy(self.author.id)
-        if self.player.energy == 0:
-            button.disabled = True
-            button.label = 'No Energy'
-            button.emoji = '⚠️'
         self.enemy = Enemy.get_random_enemy(self.game_data, 'forest', self.player.level)
-        self.embed = BattleEmbeds.enemy_found_embed(self.enemy, self.player.energy)
+        self.embed = BattleEmbeds.enemy_found_embed(self.enemy)
         await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(label='Cancel', style=discord.ButtonStyle.danger)

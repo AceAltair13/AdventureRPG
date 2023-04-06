@@ -92,10 +92,8 @@ class BattleEmbeds:
     '''Embed factory for all combat scout related embeds'''
 
     @staticmethod
-    def enemy_found_embed(enemy: Enemy, energy: int):
+    def enemy_found_embed(enemy: Enemy):
         embed = discord.Embed()
-        if energy:
-            embed.set_footer(text=f'Energy Remaining: {energy}⚡')
 
         if enemy:
             embed.color = discord.Color.gold()

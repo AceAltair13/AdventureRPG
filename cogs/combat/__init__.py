@@ -16,7 +16,7 @@ class Combat(commands.Cog):
 
     # Scout command
     @combat.command(name='scout', description='Scout for nearby enemies')
-    @player_command(energy_consumed=1)
+    @player_command()
     async def _scout(self, ctx: PlayerApplicationContext):
         embed, view = combat_scout(
             player=ctx.player, author=ctx.author, game_data=self.bot.game_data

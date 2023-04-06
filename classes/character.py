@@ -51,11 +51,9 @@ class Player(Character):
         description: str,
         stats: Stats = Stats(),
         inventory: Inventory = Inventory(),
-        energy: int = 10,
         level: int = 1,
     ):
         super().__init__(id, name, description, stats)
-        self.energy = energy
         self.level = level
         self.inventory = inventory
 
@@ -117,7 +115,6 @@ class Player(Character):
             'stats': stats,
             'inventory': inventory,
             'level': self.level,
-            'energy': self.energy,
         }
 
     @staticmethod
@@ -141,7 +138,6 @@ class Player(Character):
             stats=stats,
             inventory=inventory,
             level=player['level'],
-            energy=player['energy'],
         )
 
 
@@ -172,7 +168,7 @@ class Enemy(Character):
         # Check if mini-boss can spawn
         if (
             player_level >= _mini_boss_level_requirement
-            and MINI_BOSS_SPAWN_CHANCE < random.random()
+            and MINI_BOSS_SPAWN_CHANCE > random.random()
         ):
             enemy = random.choice(_enemies['mini_boss'])
         else:

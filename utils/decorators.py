@@ -6,7 +6,7 @@ from config import ADMIN_LIST
 from discord import Embed, Color
 
 
-def player_command(energy_consumed: int = 0, player_should_exist: bool = True):
+def player_command(player_should_exist: bool = True):
     def decorator(func):
         @wraps(func)
         async def wrapper(self, ctx: PlayerApplicationContext, *args, **kwargs):
@@ -15,7 +15,7 @@ def player_command(energy_consumed: int = 0, player_should_exist: bool = True):
             # Get the player and pass it into the PlayerApplicationContext
             try:
                 if player_should_exist:
-                    player = get_player(author.id, self.bot.game_data, energy_consumed)
+                    player = get_player(author.id, self.bot.game_data)
                     ctx.set_player(player)
                 else:
                     if player_exists(author.id):
