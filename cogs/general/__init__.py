@@ -1,6 +1,6 @@
 from discord.ext import commands
 from .start import PlayerCreateModal
-from decorators import player_command
+from utils.decorators import player_command
 from bot import PlayerApplicationContext
 import discord
 

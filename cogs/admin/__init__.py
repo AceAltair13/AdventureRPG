@@ -1,8 +1,8 @@
 from discord.ext import commands
 from config import COG_LIST
-from db import delete_player
+from utils.db import delete_player
 from bot import PlayerApplicationContext
-from decorators import admin_only
+from utils.decorators import admin_only
 import discord
 
 

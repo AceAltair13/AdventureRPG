@@ -1,14 +1,14 @@
 from .scout import combat_scout
 from discord.ext import commands
-from decorators import player_command
-from bot import PlayerApplicationContext
+from utils.decorators import player_command
+from bot import PlayerApplicationContext, AdventureRPG
 import discord
 
 
 class Combat(commands.Cog):
     '''Cog for combat related commands'''
 
-    def __init__(self, bot):
+    def __init__(self, bot: AdventureRPG):
         self.bot = bot
 
     # Create command group for combat
@@ -18,7 +18,9 @@ class Combat(commands.Cog):
     @combat.command(name='scout', description='Scout for nearby enemies')
     @player_command(energy_consumed=1)
     async def _scout(self, ctx: PlayerApplicationContext):
-        embed, view = combat_scout(player=ctx.player, author=ctx.author)
+        embed, view = combat_scout(
+            player=ctx.player, author=ctx.author, game_data=self.bot.game_data
+        )
         await ctx.respond(embed=embed, view=view)
 
     # TODO: Implement duel

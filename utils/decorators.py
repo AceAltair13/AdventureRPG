@@ -1,7 +1,7 @@
-from bot import PlayerApplicationContext
+from bot import PlayerApplicationContext, AdventureRPG
 from functools import wraps
-from db import get_player, player_exists
-from errors import AdventureRPGException, NotAnAdmin, PlayerAlreadyExists
+from utils.db import get_player, player_exists
+from utils.errors import AdventureRPGException, NotAnAdmin, PlayerAlreadyExists
 from config import ADMIN_LIST
 from discord import Embed, Color
 
@@ -15,7 +15,7 @@ def player_command(energy_consumed: int = 0, player_should_exist: bool = True):
             # Get the player and pass it into the PlayerApplicationContext
             try:
                 if player_should_exist:
-                    player = get_player(author.id, energy_consumed)
+                    player = get_player(author.id, self.bot.game_data, energy_consumed)
                     ctx.set_player(player)
                 else:
                     if player_exists(author.id):
@@ -23,7 +23,7 @@ def player_command(energy_consumed: int = 0, player_should_exist: bool = True):
                 await func(self, ctx, *args, **kwargs)
             except AdventureRPGException as e:
                 await ctx.respond(embed=e.get_embed())
-            except:
+            except Exception as e:
                 await ctx.respond(
                     embed=Embed(
                         color=Color.red(),

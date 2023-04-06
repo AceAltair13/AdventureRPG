@@ -1,12 +1,14 @@
+import typing
+
 from classes.character import Player
 from discord.ui import View
 from discord import User, Member, Interaction, Bot, ApplicationContext
-import typing
+from data import load_data
 
 
 # Custom View to prevent non-authors to grief
 class ProtectedView(View):
-    '''Prevent misauthorized interaction'''
+    '''Prevent unauthorized interaction'''
 
     def __init__(self, author: typing.Union[User, Member], *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -37,6 +39,7 @@ class AdventureRPG(Bot):
     def __init__(self, version: str):
         super().__init__()
         self.version = version
+        self.game_data = load_data()
 
     async def on_ready(self):
         print('---=---=---=---=---=---=---=---')
@@ -52,6 +55,6 @@ class AdventureRPG(Bot):
     def load_cogs(self, cog_list: list[str]):
         print('Adding cogs ....')
         for cog in cog_list:
-            print(f' (+) {cog} is loaded')
+            print(f' + {cog} is loaded')
             super().load_extension(f'cogs.{cog}')
         print(f'{len(cog_list)} cog(s) loaded successfully')

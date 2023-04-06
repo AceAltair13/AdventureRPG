@@ -1,8 +1,8 @@
+import utils.errors as errors
+
 from pymongo import MongoClient, ReturnDocument
 from config import MONGODB_URI
 from classes.character import Player
-import errors
-
 
 # Get the client
 client = MongoClient(MONGODB_URI)
@@ -21,43 +21,13 @@ def player_exists(id: int):
 
 def create_player(id: int, name: str, description: str):
     '''Create a new player in the players collection'''
-    player = {
-        '_id': str(id),
-        'name': name,
-        'description': description,
-        'level': 1,
-        'inventory': [],
-        'stats': {'hp': 100, 'attack': 5, 'defense': 0, 'cc': 0.0, 'cd': 1.5, 'max_hp': 100},
-        'equipment': {
-            'weapon': {
-                'id': 'no_weapon',
-                'level': 1,
-            },
-            'helmet': {
-                'id': 'no_helmet',
-                'level': 1,
-            },
-            'chestplate': {
-                'id': 'no_chestplate',
-                'level': 1,
-            },
-            'leggings': {
-                'id': 'no_leggings',
-                'level': 1,
-            },
-            'boots': {
-                'id': 'no_boots',
-                'level': 1,
-            },
-        },
-        'energy': 10,
-    }
-    id = players.insert_one(player).inserted_id
-    if id is None:
+    _player = Player(str(id), name, description)
+    _id = players.insert_one(_player.to_document()).inserted_id
+    if _id is None:
         raise errors.DatabaseSaveError
 
 
-def get_player(id: int, energy_consumed: int = 0) -> Player:
+def get_player(id: int, game_data: dict, energy_consumed: int = 0) -> Player:
     '''Get the player from the players collection'''
 
     if not player_exists(str(id)):
@@ -67,16 +37,15 @@ def get_player(id: int, energy_consumed: int = 0) -> Player:
     if energy_consumed > 0:
         filter['energy'] = {'$gte': energy_consumed}
 
-    projection = {'_id': 0}
     update = {'$inc': {'energy': -energy_consumed}} if energy_consumed else None
     _player = players.find_one_and_update(
-        filter=filter, projection=projection, update=update, return_document=ReturnDocument.AFTER
+        filter=filter, update=update, return_document=ReturnDocument.AFTER
     )
 
     if energy_consumed and _player is None:
         raise errors.PlayerHasNoEnergy
 
-    return Player.from_document(_player)
+    return Player.from_document(_player, game_data)
 
 
 def update_player(id: int, player: Player):

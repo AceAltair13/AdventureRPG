@@ -1,12 +1,12 @@
 import operator
 import random
 
-from data import game_data
-from data.types import ArmorType, EnemyType, ItemType, RaceType
+from .enums import EnemyType, ItemType
 from .entity import Entity
-from .equipment import Armor, EquipmentInventory, Weapon
 from .item import Item
 from .stats import Stats
+from .inventory import Inventory
+from .equipment import Armor, Weapon
 from config import MINI_BOSS_SPAWN_CHANCE
 
 
@@ -46,27 +46,25 @@ class Player(Character):
 
     def __init__(
         self,
+        id: str,
         name: str,
         description: str,
-        stats: Stats,
-        equipment: EquipmentInventory = {},
+        stats: Stats = Stats(),
+        inventory: Inventory = Inventory(),
         energy: int = 10,
         level: int = 1,
-        inventory: list[Item] = [],
     ):
-        super().__init__('player', name, description, stats)
-        self.actual_stats = stats
-        self.inventory = inventory
-        self.equipment = equipment
-        self.level = level
+        super().__init__(id, name, description, stats)
         self.energy = energy
+        self.level = level
+        self.inventory = inventory
 
     def use_item(self, item: Item):
         # Check if item is potion
-        if item.type == ItemType.CONSUMABLE:
+        if item.item_type == ItemType.CONSUMABLE:
             self.use_consumable(item)
 
-        self.inventory.remove(item)
+        self.inventory.bag.remove(item)
 
     def use_consumable(self, item: Item):
         # Modify the player stats according to effects list
@@ -84,90 +82,67 @@ class Player(Character):
         self.stats = self.actual_stats
 
     def to_document(self):
-        stats = {
-            'hp': self.stats.hp,
-            'max_hp': self.stats.max_hp,
-            'cc': self.stats.cc,
-            'cd': self.stats.cd,
-            'attack': self.stats.attack,
-            'defense': self.stats.defense,
-        }
-        inventory = [{'id': item.id, 'count': item.count} for item in self.inventory]
-        equipment = {
+        stats = self.stats.__dict__
+        inventory = {
             'helmet': {
-                'id': self.equipment.helmet.id,
-                'level': self.equipment.helmet.current_level,
+                'id': self.inventory.helmet.id,
+                'level': self.inventory.helmet.current_level,
             },
             'chestplate': {
-                'id': self.equipment.chestplate.id,
-                'level': self.equipment.chestplate.current_level,
+                'id': self.inventory.chestplate.id,
+                'level': self.inventory.chestplate.current_level,
             },
             'leggings': {
-                'id': self.equipment.leggings.id,
-                'level': self.equipment.leggings.current_level,
+                'id': self.inventory.leggings.id,
+                'level': self.inventory.leggings.current_level,
             },
             'boots': {
-                'id': self.equipment.boots.id,
-                'level': self.equipment.boots.current_level,
+                'id': self.inventory.boots.id,
+                'level': self.inventory.boots.current_level,
             },
             'weapon': {
-                'id': self.equipment.weapon.id,
-                'level': self.equipment.weapon.current_level,
+                'id': self.inventory.weapon.id,
+                'level': self.inventory.weapon.current_level,
             },
+            'accessory': {
+                'id': self.inventory.accessory.id,
+            },
+            'bag': [item.id for item in self.inventory.bag],
         }
 
         return {
+            '_id': self.id,
             'name': self.name,
             'description': self.description,
             'stats': stats,
             'inventory': inventory,
-            'equipment': equipment,
             'level': self.level,
             'energy': self.energy,
         }
 
     @staticmethod
-    def from_document(_player: dict):
-        stats = _player['stats']
-
-        equipment = _player['equipment']
-
-        equipment_inventory = EquipmentInventory(
-            helmet=Armor(
-                id=equipment['helmet']['id'],
-                armor_type=ArmorType.HELMET,
-                current_level=equipment['helmet']['level'],
-                **game_data['equipment']['helmets'][equipment['helmet']['id']],
-            ),
-            chestplate=Armor(
-                id=equipment['chestplate']['id'],
-                armor_type=ArmorType.CHESTPLATE,
-                current_level=equipment['chestplate']['level'],
-                **game_data['equipment']['chestplates'][equipment['chestplate']['id']],
-            ),
-            leggings=Armor(
-                id=equipment['leggings']['id'],
-                armor_type=ArmorType.LEGGINGS,
-                current_level=equipment['leggings']['level'],
-                **game_data['equipment']['leggings'][equipment['leggings']['id']],
-            ),
-            boots=Armor(
-                id=equipment['boots']['id'],
-                armor_type=ArmorType.BOOTS,
-                current_level=equipment['boots']['level'],
-                **game_data['equipment']['boots'][equipment['boots']['id']],
-            ),
-            weapon=Weapon(
-                id=equipment['weapon']['id'],
-                current_level=equipment['weapon']['level'],
-                **game_data['equipment']['weapons'][equipment['weapon']['id']],
-            ),
+    def from_document(player: dict, game_data: dict):
+        stats = Stats(**player['stats'])
+        _inventory = player['inventory']
+        inventory = Inventory(
+            helmet=Armor(**game_data['items'][_inventory['helmet']['id']]),
+            chestplate=Armor(**game_data['items'][_inventory['chestplate']['id']]),
+            leggings=Armor(**game_data['items'][_inventory['leggings']['id']]),
+            boots=Armor(**game_data['items'][_inventory['boots']['id']]),
+            weapon=Weapon(**game_data['items'][_inventory['weapon']['id']]),
+            accessory=Item(**game_data['items'][_inventory['accessory']['id']]),
+            bag=[Item(**game_data['items'][item_id]) for item_id in _inventory['bag']],
         )
 
-        _player['stats'] = Stats(**stats)
-        _player['equipment'] = equipment_inventory
-
-        return Player(**_player)
+        return Player(
+            id=player['_id'],
+            name=player['name'],
+            description=player['description'],
+            stats=stats,
+            inventory=inventory,
+            level=player['level'],
+            energy=player['energy'],
+        )
 
 
 class Enemy(Character):
@@ -178,72 +153,48 @@ class Enemy(Character):
         id: str,
         name: str,
         description: str,
-        race: RaceType,
         stats: Stats,
         enemy_type: EnemyType,
-        loot_table: dict,
+        loot_table: list[tuple] = [],  # [(item_id, item_name, item_quantity)]
     ):
         super().__init__(id, name, description, stats)
-        self.race = race
         self.enemy_type = enemy_type
         self.loot_table = loot_table
 
-    def generate_loot(self, luck: float):
-        drops = []
-        for item in self.loot_table:
-            chance = item['chance']
-            if chance <= 0.25:
-                rarity = 'n `EPIC`'
-            elif chance <= 0.5:
-                rarity = ' `RARE`'
-            elif chance <= 0.75:
-                rarity = 'n `UNCOMMON`'
-            else:
-                rarity = ' `COMMON`'
-            if random.random() < chance + luck:
-                a, b = item['quantity']
-                drops.append(
-                    (
-                        random.randint(a, b),
-                        Item(
-                            id=item['id'],
-                            name=item['name'],
-                            description=f'A{rarity} drop from the {self.name}',
-                            item_type=ItemType.MATERIAL,
-                            value=item['value'],
-                        ),
-                    )
-                )
-        return drops
-
     @staticmethod
-    def get_random_enemy(region: str, player_level: int):
+    def get_random_enemy(game_data: dict, region: str, player_level: int):
         '''Gets a random enemy from a specified region'''
 
-        region = game_data['regions'][region]
-        mini_boss_level_requirement = region['mini_boss_level_requirement']
-        enemies = region['enemies']
+        _region = game_data['regions'][region]
+        _enemies = _region['enemies']
+        _mini_boss_level_requirement = _region['mini_boss_level_requirement']
 
-        # Check if player is eligible for mini-bosses
+        # Check if mini-boss can spawn
         if (
-            player_level >= mini_boss_level_requirement
-            and random.random() < MINI_BOSS_SPAWN_CHANCE
+            player_level >= _mini_boss_level_requirement
+            and MINI_BOSS_SPAWN_CHANCE < random.random()
         ):
-            enemy = random.choice(enemies['mini_boss'])
-            enemy_type = EnemyType.MINI_BOSS
+            enemy = random.choice(_enemies['mini_boss'])
         else:
-            enemy = random.choice(enemies['normal'])
-            enemy_type = EnemyType.NORMAL
+            enemy = random.choice(_enemies['regular'])
 
-        stats = {**enemy['stats'], 'hp': enemy['stats']['max_hp']}
+        _enemy_id = enemy['id']
+        _enemy = game_data['enemies'][_enemy_id]
+        _loot_table = enemy['loot_table']
+        _loot = []
 
-        # Create Enemy instance
+        for loot in _loot_table:
+            if random.random() > loot['chance']:
+                quantity = random.randint(loot['quantity'][0], loot['quantity'][1])
+                name = game_data['items'][loot['id']]['name']
+                item_id = loot['id']
+                _loot.append((item_id, name, quantity))
+
         return Enemy(
-            id=enemy['id'],
-            name=enemy['name'],
-            description=enemy['description'],
-            race=RaceType(enemy['race']),
-            enemy_type=enemy_type,
-            stats=Stats(**stats),
-            loot_table=enemy['loot_table'],
+            id=_enemy_id,
+            name=_enemy['name'],
+            description=_enemy['description'],
+            stats=Stats(**_enemy['stats'], max_hp=_enemy['stats']['hp']),
+            enemy_type=_enemy['enemy_type'],
+            loot_table=_loot,
         )

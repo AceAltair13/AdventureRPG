@@ -1,4 +1,4 @@
-from db import create_player
+from utils.db import create_player
 import discord
 
 

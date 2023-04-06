@@ -1,7 +1,7 @@
 from classes.character import Player, Enemy
 from bot import ProtectedView
 from .battle import NormalBattle, BattleEmbeds
-from db import consume_player_energy, update_player
+from utils.db import consume_player_energy, update_player
 import discord
 
 
@@ -34,10 +34,10 @@ class NormalEnemyGameView(ProtectedView):
 
         # Inventory button
         self.btn_inventory = discord.ui.Button(
-            label='Open Inventory' if self.game.player.inventory else 'Inventory Empty',
+            label='Open Inventory' if self.game.player.inventory.bag else 'Inventory Empty',
             style=discord.ButtonStyle.primary,
             row=1,
-            disabled=self.game.player.inventory == [],
+            disabled=self.game.player.inventory.bag == [],
         )
         self.btn_inventory.callback = self.btn_inventory_callback
 
@@ -79,7 +79,7 @@ class NormalEnemyGameView(ProtectedView):
 
     async def select_menu_callback(self, interaction: discord.Interaction):
         index = int(self.select_menu.values[0])
-        item = self.game.player.inventory[index]
+        item = self.game.player.inventory.bag[index]
         self.embed, _ = self.game.use_item(item)
         self.toggle_inventory()
         await interaction.response.edit_message(embed=self.embed, view=self)
@@ -102,7 +102,7 @@ class NormalEnemyGameView(ProtectedView):
             btn1.disabled = True
             btn2.disabled = True
             options = []
-            for index, item in enumerate(self.game.player.inventory):
+            for index, item in enumerate(self.game.player.inventory.bag):
                 options.append(
                     discord.SelectOption(
                         label=item.name, description=item.description, value=str(index)
@@ -116,7 +116,7 @@ class NormalEnemyGameView(ProtectedView):
             self.remove_item(self.select_menu)
 
         # Check if inventory is empty
-        if not self.game.player.inventory:
+        if not self.game.player.inventory.bag:
             self.btn_inventory.label = 'Inventory Empty'
             self.btn_inventory.disabled = True
 
@@ -125,11 +125,12 @@ class NormalEnemyGameView(ProtectedView):
 class CombatScoutView(ProtectedView):
     '''View class for scouting nearby enemies'''
 
-    def __init__(self, player: Player, author):
+    def __init__(self, player: Player, author, game_data):
         super().__init__(author=author)
         self.author = author
         self.player = player
-        self.enemy = Enemy.get_random_enemy('forest', self.player.level)
+        self.game_data = game_data
+        self.enemy = Enemy.get_random_enemy(self.game_data, 'forest', self.player.level)
         self.embed = BattleEmbeds.enemy_found_embed(self.enemy, self.player.energy)
 
     @discord.ui.button(label='Start', style=discord.ButtonStyle.success)
@@ -152,7 +153,7 @@ class CombatScoutView(ProtectedView):
             button.disabled = True
             button.label = 'No Energy'
             button.emoji = '⚠️'
-        self.enemy = Enemy.get_random_enemy('forest', self.player.level)
+        self.enemy = Enemy.get_random_enemy(self.game_data, 'forest', self.player.level)
         self.embed = BattleEmbeds.enemy_found_embed(self.enemy, self.player.energy)
         await interaction.response.edit_message(embed=self.embed, view=self)
 
@@ -166,6 +167,6 @@ class CombatScoutView(ProtectedView):
 
 
 # Function to link scout command to logic
-def combat_scout(player: Player, author):
-    view = CombatScoutView(player=player, author=author)
+def combat_scout(player: Player, author, game_data):
+    view = CombatScoutView(player=player, author=author, game_data=game_data)
     return view.embed, view

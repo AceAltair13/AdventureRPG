@@ -1,7 +1,7 @@
 import typing
 
 from .entity import Entity
-from data.types import ItemType
+from classes.enums import ItemType
 
 
 class Item(Entity):
@@ -19,8 +19,8 @@ class Item(Entity):
             list[tuple[str, str, int, bool]], None
         ] = None,  # list[(stat, operation, value, permanent?)]
         value: int = 0,
-    ) -> None:
+    ):
         super().__init__(id, name, description)
         self.effects = effects
-        self.type = item_type
+        self.item_type = item_type
         self.value = value

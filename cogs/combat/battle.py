@@ -45,7 +45,7 @@ class NormalBattle:
                     self.player_total_damage,
                     self.enemy_total_damage,
                     100,
-                    self.enemy.generate_loot(self.player.stats.luck) if player_alive else None,
+                    self.enemy.loot_table if player_alive else None,
                 ),
                 True,
             )
@@ -100,10 +100,7 @@ class BattleEmbeds:
         if enemy:
             embed.color = discord.Color.gold()
             embed.title = enemy.name
-            embed.description = (
-                f'Type: `{enemy.race.value.capitalize()}` \n'
-                + f'```❤️{enemy.stats.max_hp} ⚔️{enemy.stats.attack} 🛡️{enemy.stats.defense} \n\n{enemy.description}```'
-            )
+            embed.description = f'```❤️{enemy.stats.max_hp} ⚔️{enemy.stats.attack} 🛡️{enemy.stats.defense} \n\n{enemy.description}```'
 
             # Check if the boss is a mini-boss
             if enemy.enemy_type == EnemyType.MINI_BOSS:
@@ -189,7 +186,7 @@ class BattleEmbeds:
             embed.color = discord.Color.green()
             embed.title = '🏆 Victory'
             if loot:
-                list_loot = '\n'.join(f'{item[0]}x {item[1].name}' for item in loot)
+                list_loot = '\n'.join(f'{item[2]}x {item[1]}' for item in loot)
                 embed.add_field(name='🎉 Loot', value=list_loot, inline=False)
         else:
             embed.color = discord.Color.red()

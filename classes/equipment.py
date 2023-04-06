@@ -1,5 +1,5 @@
 from .item import Item
-from data.types import ArmorType, WeaponType, ItemType
+from .enums import ArmorType, WeaponType, ItemType
 
 
 class Equipment(Item):
@@ -29,6 +29,7 @@ class Armor(Equipment):
         description: str,
         required_level: int,
         armor_type: ArmorType,
+        item_type: ItemType,
         defense: int,
         set_bonus_id: str,
         current_level: int = 1,
@@ -37,7 +38,7 @@ class Armor(Equipment):
             id=id,
             name=name,
             description=description,
-            item_type=ItemType.ARMOR,
+            item_type=item_type,
             required_level=required_level,
             current_level=current_level,
         )
@@ -56,6 +57,7 @@ class Weapon(Equipment):
         description: str,
         required_level: int,
         weapon_type: WeaponType,
+        item_type: ItemType,
         attack: int,
         current_level: int = 1,
     ):
@@ -63,27 +65,9 @@ class Weapon(Equipment):
             id=id,
             name=name,
             description=description,
-            item_type=ItemType.WEAPON,
+            item_type=item_type,
             required_level=required_level,
             current_level=current_level,
         )
         self.weapon_type = weapon_type
         self.attack = attack
-
-
-class EquipmentInventory:
-    '''Equipment containing armor and weapon'''
-
-    def __init__(
-        self,
-        helmet: Armor,
-        chestplate: Armor,
-        leggings: Armor,
-        boots: Armor,
-        weapon: Weapon,
-    ):
-        self.helmet = helmet
-        self.chestplate = chestplate
-        self.leggings = leggings
-        self.boots = boots
-        self.weapon = weapon

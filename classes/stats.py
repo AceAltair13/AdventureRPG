@@ -3,12 +3,12 @@ class Stats:
 
     def __init__(
         self,
-        hp: int,
-        attack: int,
-        defense: int,
-        cc: float,
-        cd: float,
-        max_hp: float,
+        hp: int = 100,
+        max_hp: int = 100,
+        attack: int = 5,
+        defense: int = 0,
+        cc: float = 0.0,
+        cd: float = 1.5,
         luck: float = 0.0,
     ):
         self.hp = hp
